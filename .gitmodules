@@ -1,0 +1,4 @@
+[submodule "lib/commonlibnv"]
+	path = lib/commonlibnv
+	url = https://github.com/frakkin64/commonlibnv.git
+	branch = main
