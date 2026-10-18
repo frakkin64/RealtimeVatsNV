@@ -1,0 +1,181 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    outputs:
+      name: ${{ steps.version.outputs.name }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Generate Build Version
+        id: version
+        shell: pwsh
+        run: |
+          # Only create GitHub releases on push/merge to main or manual runs
+          $createRelease = ('${{ github.event_name }}' -eq 'push' -and '${{ github.ref }}' -eq 'refs/heads/main')
+
+          # Fetch current project name and version using Xmake Lua environment
+          $name = (xmake l -c "import('core.project.project'); print(tostring(project.name()))").Trim()
+          $currentVersion = (xmake l -c "import('core.project.project'); print(tostring(project.version()))").Trim()
+          $sha = '${{ github.sha }}'.Substring(0, 8)
+          
+          $targetName = (xmake l -c "import('core.project.project'); for k, v in pairs(project.targets()) do if v:is_default() then print(k); break end end").Trim()
+          
+          Write-Host "Discovered Project: $name"
+          Write-Host "Discovered Target: $targetName"
+          Write-Host "Current Base Version: $currentVersion"
+          
+          # Extract major, minor and patch values (assumes semantic version structure X.Y.Z)
+          if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)') {
+              $major = $Matches[1]
+              $minor = $Matches[2]
+          } else {
+              $major = "1"
+              $minor = "0"
+          }
+          
+          # Read patch offset from file, default to 0 if file is missing or invalid
+          $patchOffsetFile = ".github/patch_number_offset"
+          $patchOffset = 0
+          if (Test-Path $patchOffsetFile) {
+              $fileContent = (Get-Content $patchOffsetFile).Trim()
+              if ($fileContent -match '^\d+$') {
+                  $patchOffset = [int]$fileContent
+              }
+          }
+          Write-Host "Using patch version offset: $patchOffset"
+
+          # Calculate patch version using GitHub Run Number and the offset
+          $runNumber = [int]'${{ github.run_number }}'
+          $patch = ($runNumber - $patchOffset) % 4096
+          
+          $buildVersion = "$major.$minor.$patch"
+          $tag = "v${buildVersion}"
+          Write-Host "Calculated Target Version: $buildVersion"
+          
+          # Modify xmake.lua targeting the set_version rule on release builds
+          if ($createRelease) {
+              $xmakePath = "xmake.lua"
+              if (Test-Path $xmakePath) {
+                  $content = Get-Content -Path $xmakePath -Raw
+                  $updatedContent = $content -replace 'set_version\s*\(\s*"[^"]*"\s*\)', "set_version(`"$buildVersion`")"
+                  Set-Content -Path $xmakePath -Value $updatedContent -NoNewline
+                  Write-Host "Successfully modified xmake.lua string matching rules."
+              } else {
+                  Throw "Could not find xmake.lua file in project root context!"
+              }
+          }
+          
+          "name=$name" >> $env:GITHUB_OUTPUT
+          "targetName=$targetName" >> $env:GITHUB_OUTPUT
+          "version=$buildVersion" >> $env:GITHUB_OUTPUT
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "createRelease=$($createRelease.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Build
+        run: |
+          xmake f -y -p windows -a x86 -m releasedbg
+          xmake build -y -vD
+
+      - name: Generate license
+        shell: pwsh
+        run: |
+          $SourceFiles = @( "LICENSE", "EXCEPTIONS" )
+          $OutputFile  = "dist\${{ steps.version.outputs.name }}.LICENSE"
+
+          $GlobalHeader = @"
+          This project is licensed under multiple open-source licenses. 
+          Please see the individual license sections below for terms and conditions.
+
+          ======================================================================
+          "@
+
+          Set-Content -Path $OutputFile -Value $GlobalHeader -Encoding utf8
+          $Counter = 1
+
+          foreach ($Path in $SourceFiles) {
+              if (Test-Path -Path $Path) {
+                  $File = Get-Item -Path $Path
+
+                  Add-Content -Path $OutputFile -Value "*** $Counter. $($File.Name)"
+                  Add-Content -Path $OutputFile -Value "======================================================================`n"
+                  Add-Content -Path $OutputFile -Value (Get-Content $File.FullName)
+                  Add-Content -Path $OutputFile -Value "`n======================================================================"
+        
+                  $Counter++
+              } else {
+                  Write-Warning "File not found: $Path"
+              }
+          }    
+
+      - name: Package artifacts
+        id: package
+        shell: pwsh
+        run: |
+          $artifactName = if ('${{ steps.version.outputs.createRelease }}' -eq 'true') {
+              "${{ steps.version.outputs.name }}-${{ steps.version.outputs.version }}"
+          } else {
+              "${{ steps.version.outputs.name }}-${{ steps.version.outputs.sha }}"
+          }
+          
+          $artifactFile = "$artifactName.7z"
+          
+          # Reference the extracted target name via step outputs
+          $targetName = "${{ steps.version.outputs.targetName }}"
+          
+          New-Item -Path "artifacts\NVSE\Plugins" -ItemType Directory -Force
+          if (Test-Path "dist") {
+              Get-ChildItem "dist\" | Copy-Item -Destination "artifacts" -Recurse -Force
+          }
+          
+          Copy-Item "build\windows\x86\releasedbg\$targetName.dll" -Destination "artifacts\NVSE\Plugins\" -Force
+          Copy-Item "build\windows\x86\releasedbg\$targetName.pdb" -Destination "artifacts\NVSE\Plugins\" -Force
+          
+          Push-Location "artifacts"
+          7z a -t7z -mx=9 "..\$artifactFile" .
+          Pop-Location
+          
+          "artifactName=$artifactName" >> $env:GITHUB_OUTPUT
+          "artifactFile=$artifactFile" >> $env:GITHUB_OUTPUT
+
+      - name: Upload artifact to pull request
+        if: steps.version.outputs.createRelease != 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.package.outputs.artifactName }}
+          path: ${{ steps.package.outputs.artifactFile }}
+        
+      - name: Upload artifact to release
+        if: steps.version.outputs.createRelease == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: ${{ steps.package.outputs.artifactFile }}

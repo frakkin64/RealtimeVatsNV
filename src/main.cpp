@@ -1,22 +1,5 @@
-#include "Commands.h"
+#include "RealtimeVats.h"
 #include "Settings.h"
-
-namespace
-{
-	void OnMessage(NVSE::MessagingInterface::Message* a_msg)
-	{
-		switch (a_msg->type) {
-		case NVSE::MessagingInterface::kPostLoad:
-			REX::INFO("NVSE finished loading plugins");
-			break;
-		case NVSE::MessagingInterface::kDeferredInit:
-			REX::INFO("game data is loaded");
-			break;
-		default:
-			break;
-		}
-	}
-}
 
 NVSE_PLUGIN_QUERY(const NVSE::QueryInterface* a_nvse, NVSE::PluginInfo* a_info)
 {
@@ -24,12 +7,13 @@ NVSE_PLUGIN_QUERY(const NVSE::QueryInterface* a_nvse, NVSE::PluginInfo* a_info)
 	a_info->name = NVSE_PLUGIN_NAME;
 	a_info->version = NVSE_PLUGIN_VERSION;
 
-	// the editor (GECK) is not supported by this template
+	// the editor (GECK) is not supported
 	if (a_nvse->IsEditor()) {
 		return false;
 	}
 
-	if (a_nvse->PackedRuntimeVersion() < NVSE::PACKED_RUNTIME_1_4_0_525) {
+	// the hook sites are specific to this runtime
+	if (a_nvse->PackedRuntimeVersion() != NVSE::PACKED_RUNTIME_1_4_0_525) {
 		return false;
 	}
 
@@ -39,7 +23,7 @@ NVSE_PLUGIN_QUERY(const NVSE::QueryInterface* a_nvse, NVSE::PluginInfo* a_info)
 NVSE_PLUGIN_LOAD(const NVSE::LoadInterface* a_nvse)
 {
 	const auto config = REX::TOML::SettingStore::GetSingleton();
-	config->Init("Data/NVSE/Plugins/template.toml", "Data/NVSE/Plugins/template_custom.toml");
+	config->Init("Data/NVSE/Plugins/RealtimeVatsNV.toml", "Data/NVSE/Plugins/RealtimeVatsNV_custom.toml");
 	config->Load();
 
 	const auto initInfo = NVSE::InitInfo{
@@ -50,13 +34,11 @@ NVSE_PLUGIN_LOAD(const NVSE::LoadInterface* a_nvse)
 
 	NVSE::Init(a_nvse, initInfo);
 
-	REX::INFO("Hello World!");
+	Plugin::RealtimeVats::Install();
 
 	if (const auto messaging = NVSE::GetMessagingInterface()) {
-		messaging->RegisterListener(OnMessage);
+		messaging->RegisterListener(Plugin::RealtimeVats::OnMessage);
 	}
-
-	Plugin::Commands::Register(a_nvse);
 
 	return true;
 }

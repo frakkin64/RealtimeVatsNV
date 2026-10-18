@@ -1,0 +1,197 @@
+<!-- RealtimeVatsNV.xml: lock-on highlight and info panel, positioned and filled from code.
+     RTV_Marker is the highlight frame over the aimed limb; RTV_Panel is the VATS-style callout (the game's body part template: bracket and shadow images, limb name, chance text and a 70 x 16 meter) placed beside the target. -->
+<menu name="RealtimeVatsNVMenu">
+	<stackingtype> &does_not_stack; </stackingtype>
+	<visible> &true; </visible>
+	<alpha> 255 </alpha>
+	<locus> &true; </locus>
+	<depth> -40 </depth>
+	<x> 0 </x>
+	<y> 0 </y>
+
+
+	<rect name="RTV_Marker">
+		<systemcolor> &hudmain; </systemcolor>
+		<visible> &false; </visible>
+		<locus> &true; </locus>
+		<width> 40 </width>
+		<height> 40 </height>
+		<x> 0 </x>
+		<y> 0 </y>
+
+		<image name="RTV_Frame">
+			<filename> Interface\Shared\Marker\glow_square_small.dds </filename>
+			<texatlas> Interface\InterfaceShared.tai </texatlas>
+			<width> 40 </width>
+			<height> 40 </height>
+			<x> -20 </x>
+			<y> -20 </y>
+		</image>
+	</rect>
+
+	<rect name="RTV_Panel">
+		<systemcolor> &hudmain; </systemcolor>
+		<visible> &false; </visible>
+		<locus> &true; </locus>
+		<width> 160 </width>
+		<height> 56 </height>
+		<x> 0 </x>
+		<y> 0 </y>
+
+
+		<rect name="RTV_Right">
+			<visible> &false; </visible>
+			<locus> &true; </locus>
+			<width> 256 </width>
+			<height> 128 </height>
+			<x> 0 </x>
+			<y> 0 </y>
+
+			<image name="RTV_Bracket">
+				<depth> 2 </depth>
+				<filename> Interface\VATS\vats_right_divider.dds </filename>
+				<x> -75 </x>
+				<y> -45 </y>
+				<width> 256 </width>
+				<height> 128 </height>
+			</image>
+			<image name="RTV_BracketShadow">
+				<filename> Interface\VATS\vats_right_divider_shadow.dds </filename>
+				<brightness> &uselocalcolor; </brightness>
+				<x> -75 </x>
+				<y> -45 </y>
+				<width> 256 </width>
+				<height> 128 </height>
+			</image>
+			<text name="RTV_Name">
+				<depth> 2 </depth>
+				<string> </string>
+				<font> 7 </font>
+				<x> -60 </x>
+				<y> -60 </y>
+			</text>
+			<text name="RTV_Chance">
+				<depth> 2 </depth>
+				<string> </string>
+				<font> 7 </font>
+				<x> -45 </x>
+				<y> 0 </y>
+			</text>
+			<image name="RTV_MeterBack">
+				<depth> 1 </depth>
+				<filename> Interface\Shared\solid.dds </filename>
+				<alpha> 64 </alpha>
+				<x> -49 </x>
+				<y> -20 </y>
+				<width> 70 </width>
+				<height> 16 </height>
+			</image>
+			<image name="RTV_MeterFill">
+				<depth> 2 </depth>
+				<filename> Interface\Shared\solid.dds </filename>
+				<x> -49 </x>
+				<y> -20 </y>
+				<width> 1 </width>
+				<height> 16 </height>
+			</image>
+		</rect>
+
+		<rect name="RTV_Left">
+			<visible> &false; </visible>
+			<locus> &true; </locus>
+			<width> 256 </width>
+			<height> 128 </height>
+			<x> 0 </x>
+			<y> 0 </y>
+
+			<image name="RTV_Bracket">
+				<depth> 2 </depth>
+				<filename> Interface\VATS\vats_left_divider.dds </filename>
+				<x> -75 </x>
+				<y> -45 </y>
+				<width> 256 </width>
+				<height> 128 </height>
+			</image>
+			<image name="RTV_BracketShadow">
+				<filename> Interface\VATS\vats_left_divider_shadow.dds </filename>
+				<brightness> &uselocalcolor; </brightness>
+				<x> -75 </x>
+				<y> -45 </y>
+				<width> 256 </width>
+				<height> 128 </height>
+			</image>
+			<text name="RTV_Name">
+				<depth> 2 </depth>
+				<string> </string>
+				<font> 7 </font>
+				<x> <copy> 57 </copy> <sub src="me()" trait="width"/> </x>
+				<y> -60 </y>
+			</text>
+			<text name="RTV_Chance">
+				<depth> 2 </depth>
+				<string> </string>
+				<font> 7 </font>
+				<x> <copy> 45 </copy> <sub src="me()" trait="width"/> </x>
+				<y> 0 </y>
+			</text>
+			<image name="RTV_MeterBack">
+				<depth> 1 </depth>
+				<filename> Interface\Shared\solid.dds </filename>
+				<alpha> 64 </alpha>
+				<x> -21 </x>
+				<y> -20 </y>
+				<width> 70 </width>
+				<height> 16 </height>
+			</image>
+			<image name="RTV_MeterFill">
+				<depth> 2 </depth>
+				<filename> Interface\Shared\solid.dds </filename>
+				<x> -21 </x>
+				<y> -20 </y>
+				<width> 1 </width>
+				<height> 16 </height>
+			</image>
+		</rect>
+
+
+		<text name="RTV_Target">
+			<string> </string>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<x> -45 </x>
+			<y> 48 </y>
+		</text>
+
+		<text name="RTV_Resist">
+			<string> </string>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<x> -45 </x>
+			<y> 76 </y>
+		</text>
+
+		<text name="RTV_Crit">
+			<string> </string>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<x> -45 </x>
+			<y> 104 </y>
+		</text>
+
+		<image name="RTV_CritBack">
+			<filename> Interface\Shared\solid.dds </filename>
+			<alpha> 64 </alpha>
+			<width> 100 </width>
+			<height> 6 </height>
+			<x> -45 </x>
+			<y> 134 </y>
+		</image>
+		<image name="RTV_CritFill">
+			<filename> Interface\Shared\solid.dds </filename>
+			<width> 1 </width>
+			<height> 6 </height>
+			<x> -45 </x>
+			<y> 134 </y>
+		</image>
+	</rect>
+</menu>

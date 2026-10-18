@@ -2,8 +2,8 @@
 includes("lib/commonlibnv")
 
 -- set project constants
-set_project("commonlibnv-template")
-set_version("0.0.0")
+set_project("RealtimeVatsNV")
+set_version("1.0.0")
 set_license("GPL-3.0")
 set_languages("c++23")
 set_warnings("allextra")
@@ -16,11 +16,11 @@ add_rules("plugin.vsxmake.autoupdate")
 set_config("commonlib_toml", true)
 
 -- define targets
-target("commonlibnv-template")
+target("RealtimeVatsNV")
     add_rules("commonlibnv.plugin", {
-        name = "commonlibnv-template",
-        author = "libxse",
-        description = "NVSE plugin template using CommonLibNV"
+        name = "RealtimeVatsNV",
+        author = "frakkin64",
+        description = "Real-time lock-on VATS for Fallout: New Vegas"
     })
 
     -- add src files

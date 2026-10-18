@@ -1,0 +1,69 @@
+[General]
+# 0 = trace (per-shot, per-hit, visibility and once-a-second target diagnostics), 1 = debug (lock, chain, crit, key presses, refusals, meter), 2 = info
+iLogLevel = 2
+
+[RealtimeVats]
+bEnabled = true
+
+# DirectInput scan codes (DIK_*): X locks on / releases, C cycles the target (0 disables a key)
+iKeyLock = 0x2D
+iKeyNext = 0x2E
+# optional: cycle backwards (0 = off)
+iKeyPrevious = 0
+
+# target acquisition (game units / degrees)
+fMaxRange = 2500.0
+fMaxAngle = 45.0
+
+# lowest hit chance (0..1) at which a target can be locked, cycled to or chained to
+fMinChanceToLock = 0.10
+
+# limb aimed at: 0 torso, 1 head, 3 left arm, 5 right arm, 7 left leg, 10 right leg
+iLimb = 0
+
+# while locked, the game's own bindings of the keys above (Grab on Z, Toggle POV on F, ...) are unbound, so a press only acts for the plugin
+bFreeGameKeys = true
+
+# highlight the aimed limb with the game's own VATS body part effect
+bLimbHighlight = true
+
+# distance (UI units) between the limb highlight and the info panel
+fPanelGap = 60.0
+
+# keys that cycle the aimed limb: Z (the previous-limb key is optional, 0 = off)
+iKeyLimbNext = 0x2C
+iKeyLimbPrevious = 0
+
+# line of sight: only visible hostiles can be locked, cycled to or chained to; a locked target out of sight for fLosLostSeconds is released
+bLineOfSight = true
+fLosLostSeconds = 1.5
+fLosInterval = 0.2
+
+# when the locked target is killed, lock on to the next closest hostile in view (degrees from the view direction)
+bChain = true
+fChainMaxAngle = 90.0
+fChainMaxRange = 1500.0
+
+# action points: holding the lock drains AP per second, every shot costs the weapon's attack AP times fShotCostMult,
+# the lock drops at zero AP and needs fMinApToLock to start
+bApDrain = true
+fLockDrainPerSecond = 1.5
+fShotCostMult = 0.4
+fMinApToLock = 5.0
+
+# AP does not regenerate while a lock is held (otherwise it refills between shots and the costs never show)
+bNoRegenWhileLocked = true
+
+# highest hit chance a lock-on shot can have (0..1)
+fMaxChance = 0.95
+
+# critical hits: hits on the locked target charge a meter (1.0 = full); with a full meter the crit key (F) arms the next hit
+iKeyCrit = 0x21
+fCritChargePerHit = 0.2
+fCritDamageMult = 3.0
+
+# the player's shots only critical through the meter (no natural or sneak attack crits)
+bNoNaturalCrits = true
+
+# the once-a-second, per-shot and per-hit diagnostics are logged at trace level (iLogLevel = 0); this switch turns them off entirely
+bLogChance = true
